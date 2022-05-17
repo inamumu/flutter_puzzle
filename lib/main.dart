@@ -1,6 +1,6 @@
-import 'dart:html';
-
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const FlutterPuzzle());
@@ -151,6 +151,24 @@ class _PuzzlePageState extends State<PuzzlePage> {
     setState(() {
       tileNumbers.shuffle();
     });
+  }
+
+  void saveTileNumbers() async {
+    final value = jsonEncode(tileNumbers);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('TILE_NUMBERS', value);
+  }
+
+  void loadTileNumbers() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getString('TILE_NUMBERS');
+    if (value != null) {
+      final numbers =
+          (jsonDecode(value) as List<dynamic>).map((v) => v as int).toList();
+      setState(() {
+        tileNumbers = numbers;
+      });
+    }
   }
 }
 
