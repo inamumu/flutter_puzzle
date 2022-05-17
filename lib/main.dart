@@ -91,13 +91,14 @@ class _PuzzlePageState extends State<PuzzlePage> {
                 child: TilesView(
                   numbers: tileNumbers,
                   isCorrect: calcIsCorrect(tileNumbers),
+                  onPressed: (number) => swapTile(number),
                 ),
               ),
             ),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => {},
+                onPressed: () => shuffleTiles(),
                 icon: const Icon(Icons.shuffle),
                 label: const Text('シャッフル'),
               ),
@@ -108,6 +109,7 @@ class _PuzzlePageState extends State<PuzzlePage> {
     );
   }
 
+  // 戻り値がある場合は型を定義してもよい
   bool calcIsCorrect(List<int> numbers) {
     final correctNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 0];
     for (int i = 0; i < correctNumbers.length; i++) {
@@ -117,15 +119,50 @@ class _PuzzlePageState extends State<PuzzlePage> {
     }
     return true;
   }
+
+  // 戻り値がない場合はvoidを使う
+  void swapTile(int number) {
+    if (canSwapTile(number)) {
+      setState(() {
+        final indexOfTile = tileNumbers.indexOf(number);
+        final indexOfEmpty = tileNumbers.indexOf(0);
+        tileNumbers[indexOfTile] = 0;
+        tileNumbers[indexOfEmpty] = number;
+      });
+    }
+  }
+
+  bool canSwapTile(int number) {
+    final indexOfTile = tileNumbers.indexOf(number);
+    final indexOfEmpty = tileNumbers.indexOf(0);
+    switch (indexOfEmpty) {
+      case 0:
+        return [1, 3].contains(indexOfTile);
+      case 1:
+        return [0, 2, 4].contains(indexOfTile);
+      case 8:
+        return [5, 7].contains(indexOfTile);
+      default:
+        return false;
+    }
+  }
+
+  void shuffleTiles() {
+    setState(() {
+      tileNumbers.shuffle();
+    });
+  }
 }
 
 class TilesView extends StatelessWidget {
   final List<int> numbers;
   final bool isCorrect;
+  final void Function(int number) onPressed;
   const TilesView({
     Key? key,
     required this.numbers,
     required this.isCorrect,
+    required this.onPressed,
   }) : super(key: key);
 
   @override
@@ -143,7 +180,7 @@ class TilesView extends StatelessWidget {
         return TileView(
           number: number,
           color: isCorrect ? Colors.green : Colors.blue,
-          onPressed: () => {},
+          onPressed: () => onPressed(number),
         );
       }).toList(),
     );
